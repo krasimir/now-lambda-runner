@@ -49,13 +49,13 @@ if (fs.existsSync(nowConfPath)) {
   const nowConf = require(nowConfPath);
   const express = require('express')
   const app = express();
-  const successfulMessage = [SEPARATOR];
+  const successfulMessage = [SEPARATOR, 'Routes:'];
 
   nowConf.routes.forEach(route => {
     const handlerPath = route.dest.split('?').shift();
     const r = new RegExp(route.src);
     
-    successfulMessage.push('http://localhost:' + argv.port + route.src);
+    successfulMessage.push('  http://localhost:' + argv.port + route.src);
     app.all(r, (req, res) => {
       const handler = require(nowProjectDir + handlerPath);
 
