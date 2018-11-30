@@ -8,7 +8,7 @@ Install the tool via
 > npm install -g now-lambda-runner
 ```
 
-Then go the folder containing `now.json` and run
+Then go to the folder containing `now.json` and run
 
 ```
 > now-lambda
