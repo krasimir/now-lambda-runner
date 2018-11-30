@@ -53,16 +53,18 @@ if (fs.existsSync(nowConfPath)) {
 
   nowConf.routes.forEach(route => {
     const handlerPath = route.dest.split('?').shift();
-    const handler = require(nowProjectDir + handlerPath);
     const r = new RegExp(route.src);
-
+    
     successfulMessage.push('http://localhost:' + argv.port + route.src);
     app.all(r, (req, res) => {
+      const handler = require(nowProjectDir + handlerPath);
+
       req.url = url.format({
         pathname: handlerPath,
         query: resolveParams(req.url, r, route.dest)
       });
       handler(req, res);
+      delete require.cache[require.resolve(nowProjectDir + handlerPath)]
     });
   });
   successfulMessage.push(SEPARATOR);
@@ -72,9 +74,3 @@ if (fs.existsSync(nowConfPath)) {
 } else {
   error('now.json can not be found in ' + nowConfPath);
 }
-
-
-
-
-
-
