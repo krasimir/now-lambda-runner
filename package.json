@@ -1,0 +1,25 @@
+{
+  "name": "now-lambda-runner",
+  "version": "0.1.0",
+  "description": "A tool for testing now lambdas locally",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krasimir/now-lambda-runner.git"
+  },
+  "keywords": [
+    "now",
+    "lambda",
+    "tester",
+    "runner"
+  ],
+  "author": "Krasimir Tsonev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/krasimir/now-lambda-runner/issues"
+  },
+  "homepage": "https://github.com/krasimir/now-lambda-runner#readme"
+}
