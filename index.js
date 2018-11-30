@@ -30,7 +30,7 @@ const argv = yargs
   .options({
     config: {
       type: 'string',
-      default: path.normalize(process.cwd() + '/now.json'),
+      default: 'now.json',
       desc: 'The path to now.json if it is missing in the current directory'
     },
     port: {
