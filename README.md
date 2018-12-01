@@ -51,7 +51,7 @@ Routes:
 Here's is a list of the things that happen when `now-lambda` process your `now.json` file:
 
 * It spins up an [expressjs](https://expressjs.com/) server locally on your machine
-* It starts reading the `routes` in field of the `now.json` file
+* It starts reading the `routes` field in the `now.json` file
 * If the `dest` points to a JavaScript file it passes the request and response objects to the function exported by that file. Or in other words simulates now's lambda functions.
 * If the `dest` points to a non JavaScript file it simply serves that file as a static resource.
 * If the `dest` points to something else it assumes that this is a static resource and directly serves the content of the requested resource.
