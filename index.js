@@ -5,25 +5,10 @@ const SEPARATOR = '-----------------------------------';
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs');
-const url = require('url');
 
 function error(msg) {
   console.log('\x1b[31m', msg);
   process.exit(1);
-}
-function resolveParams(originalURL, pattern, dest) {
-  const matches = originalURL.match(pattern);
-  const parsed = url.parse(dest, true);
-  
-  return Object.keys(parsed.query).reduce((params, keyName) => {
-    const placeholder = parsed.query[keyName].match(/\$(\d+)/);
-    if (placeholder) {
-      params[keyName] = matches[Number(placeholder[1])];
-    } else {
-      params[keyName] = parsed.query[keyName];
-    }
-    return params;
-  }, {})
 }
 
 const argv = yargs
@@ -49,28 +34,35 @@ if (fs.existsSync(nowConfPath)) {
   const nowConf = require(nowConfPath);
   const express = require('express')
   const app = express();
-  const successfulMessage = [SEPARATOR, 'Routes:'];
+  const log = [SEPARATOR, 'Routes:'];
 
   nowConf.routes.forEach(route => {
-    const handlerPath = route.dest.split('?').shift();
+    const destFilePath = route.dest.split('?').shift();
+    const handlerFilepath = nowProjectDir + destFilePath;
+    const handlerExt = path.extname(handlerFilepath).toLowerCase();
     const r = new RegExp(route.src);
-    
-    successfulMessage.push('  http://localhost:' + argv.port + route.src);
-    app.all(r, (req, res) => {
-      const handler = require(nowProjectDir + handlerPath);
 
-      req.url = url.format({
-        pathname: handlerPath,
-        query: resolveParams(req.url, r, route.dest)
-      });
-      handler(req, res);
-      delete require.cache[require.resolve(nowProjectDir + handlerPath)]
+    log.push('  http://localhost:' + argv.port + route.src);
+    
+    app.all(r, (req, res) => {
+      if (handlerExt === '.js') {
+        req.url = req.url.replace(r, route.dest);
+        require(handlerFilepath)(req, res);
+        delete require.cache[require.resolve(handlerFilepath)];
+      } else if(handlerExt !== '') {
+        res.sendFile(handlerFilepath);
+      } else {
+        res.sendFile(
+          path.normalize(nowProjectDir + '/' + req.url.replace(r, route.dest))
+        );
+      }
     });
   });
-  successfulMessage.push(SEPARATOR);
+
+  log.push(SEPARATOR);
 
   app.listen(argv.port);
-  console.log(successfulMessage.join('\n'));
+  console.log(log.join('\n'));
 } else {
   error('now.json can not be found in ' + nowConfPath);
 }

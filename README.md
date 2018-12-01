@@ -2,11 +2,15 @@
 
 A tool for locally testing [now](https://zeit.co/now) lambdas.
 
+## Installation
+
 Install the tool via
 
 ```
 > npm install -g now-lambda-runner
 ```
+
+## Usage
 
 Let's say that we have the following `now.json` file:
 
@@ -14,12 +18,15 @@ Let's say that we have the following `now.json` file:
 {
   "version": 2,
   "builds": [
-    { "src": "www/*.js", "use": "@now/node" }
+    { "src": "www/*.js", "use": "@now/node" },
+    { "src": "www/index.html", "use": "@now/static" },
+    { "src": "www/static/*.*", "use": "@now/static" }
   ],
   "alias": [ "demoit.now.sh" ],
   "routes": [
     { "src": "/e/(.*)", "dest": "/www/editor.js?id=$1"},
-    { "src": "/(.*)", "dest": "/www/index.js?path=$1"}
+    { "src": "/static/(.*)", "dest": "/www/static/$1"},
+    { "src": "/(.*)", "dest": "/www/index.html"}
   ]
 }
 ```
@@ -36,14 +43,26 @@ The result is as follows:
 -----------------------------------
 Routes:
   http://localhost:8004/e/(.*)
+  http://localhost:8004/static/(.*)
   http://localhost:8004/(.*)
 -----------------------------------
 ```
 
-You can also pass a path to the `now.json` file via the `--config` argument. For example:
+Here's is a list of the things that happen when `now-lambda` process your `now.json` file:
 
-```
-> now-lambda --config ../path/to/app/folder/now.json
-```
+* It spins up an [expressjs](https://expressjs.com/) server locally on your machine
+* It starts reading the `routes` in field of the `now.json` file
+* If the `dest` points to a JavaScript file it passes the request and response objects to the function exported by that file. Or in other words simulates now's lambda functions.
+* If the `dest` points to a non JavaScript file it simply serves that file as a static resource.
+* If the `dest` points to something else it assumes that this is a static resource and directly serves the content of the requested resource.
 
-What happens when you run `now-lambda` is that there is an [expressjs](https://expressjs.com/) server running on your machine. It reads the `now.json` file and creates endpoints for the routes that you defined. When the route gets hit via browser it `require`s your lambda and passes the request to it. The server by default is running on port 8004. You can change that by passing a `--port` argument.
+`now-lambda` does not:
+* Read the `builds` field
+* Does not use any of the `@now/<...>` packages
+* Does not connect to now's servers
+
+
+## CLI arguments
+
+* `--config` - path to `now.json` file
+* `--port` - by default the local server listens on port 8004. You can change it via this argument.

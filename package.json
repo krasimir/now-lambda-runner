@@ -1,6 +1,6 @@
 {
   "name": "now-lambda-runner",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "bin": {
     "now-lambda": "./index.js"
   },
@@ -27,7 +27,6 @@
   "homepage": "https://github.com/krasimir/now-lambda-runner#readme",
   "dependencies": {
     "express": "4.16.4",
-    "url": "0.11.0",
     "yargs": "12.0.5"
   }
 }
