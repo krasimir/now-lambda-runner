@@ -5,6 +5,8 @@ const SEPARATOR = '-----------------------------------';
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs');
+const pathToRegexp = require('path-to-regexp');
+const NamedRegExp = require('named-regexp-groups');
 
 function error(msg) {
   console.log('\x1b[31m', msg);
@@ -40,21 +42,31 @@ if (fs.existsSync(nowConfPath)) {
     const destFilePath = route.dest.split('?').shift();
     const handlerFilepath = nowProjectDir + destFilePath;
     const handlerExt = path.extname(handlerFilepath).toLowerCase();
-    const r = new RegExp(route.src);
+    const re = new NamedRegExp('^' + route.src);
 
-    log.push('  http://localhost:' + argv.port + route.src);
+    log.push('  http://localhost:' + argv.port + route.src + '  |  RegExp: ' + re.regex);
     
-    app.all(r, (req, res) => {
+    app.all(re.regex, (req, res) => {
+      console.log('=> "' + req.url + '" is matching ' + re.regex.toString());
       if (handlerExt === '.js') {
-        req.url = req.url.replace(r, route.dest);
+        req.url = req.url.replace(re, route.dest);
         require(handlerFilepath)(req, res);
         delete require.cache[require.resolve(handlerFilepath)];
       } else if(handlerExt !== '') {
         res.sendFile(handlerFilepath);
       } else {
-        res.sendFile(
-          path.normalize(nowProjectDir + '/' + req.url.replace(r, route.dest))
-        );
+        const match = req.url.match(re);
+        var dest = route.dest;
+        
+        for (let i=1; i<match.length; i++) {
+          dest = dest.replace('$' + i, match[i]);
+        }
+        if (match.groups) {
+          Object.keys(match.groups).forEach(key => {
+            dest = dest.replace('$' + key, match.groups[key]);
+          });
+        }
+        res.sendFile(path.normalize(nowProjectDir + '/' + dest));
       }
     });
   });
