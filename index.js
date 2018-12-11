@@ -8,11 +8,6 @@ const yargs = require('yargs');
 const pathToRegexp = require('path-to-regexp');
 const NamedRegExp = require('named-regexp-groups');
 
-function error(msg) {
-  console.log('\x1b[31m', msg);
-  process.exit(1);
-}
-
 const argv = yargs
   .options({
     config: {
@@ -29,6 +24,14 @@ const argv = yargs
   .help()
   .argv;
 
+function error(msg) {
+  console.log('\x1b[31m', msg);
+  process.exit(1);
+}
+function removeQuery(url) {
+  return url.split('?').shift();
+}
+
 const nowConfPath = path.normalize(process.cwd() + '/' + argv.config);
 const nowProjectDir = path.dirname(nowConfPath);
 
@@ -39,34 +42,34 @@ if (fs.existsSync(nowConfPath)) {
   const log = [SEPARATOR, 'Routes:'];
 
   nowConf.routes.forEach(route => {
-    const destFilePath = route.dest.split('?').shift();
-    const handlerFilepath = nowProjectDir + destFilePath;
-    const handlerExt = path.extname(handlerFilepath).toLowerCase();
     const re = new NamedRegExp('^' + route.src);
-
+    
     log.push('  http://localhost:' + argv.port + route.src + '  |  RegExp: ' + re.regex);
     
     app.all(re.regex, (req, res) => {
-      console.log('=> "' + req.url + '" is matching ' + re.regex.toString());
+      const logMessage = '=> ' + req.url + ' is matching ' + route.src;
+      const match = req.url.match(re);
+      var dest = route.dest;
+      
+      for (let i=1; i<match.length; i++) {
+        dest = dest.replace(new RegExp('\\$' + i, 'g'), match[i]);
+      }
+      if (match.groups) {
+        Object.keys(match.groups).forEach(key => {
+          dest = dest.replace(new RegExp('\\$' + key, 'g'), match.groups[key]);
+        });
+      }
+      const handlerFilepath = path.normalize(nowProjectDir + '/' + removeQuery(dest));
+      const handlerExt = path.extname(removeQuery(route.dest)).toLowerCase();
+
       if (handlerExt === '.js') {
-        req.url = req.url.replace(re, route.dest);
+        console.log(logMessage + ' --> ' + dest + ' (node)');
+        req.url = dest;
         require(handlerFilepath)(req, res);
         delete require.cache[require.resolve(handlerFilepath)];
-      } else if(handlerExt !== '') {
-        res.sendFile(handlerFilepath);
       } else {
-        const match = req.url.match(re);
-        var dest = route.dest;
-        
-        for (let i=1; i<match.length; i++) {
-          dest = dest.replace('$' + i, match[i]);
-        }
-        if (match.groups) {
-          Object.keys(match.groups).forEach(key => {
-            dest = dest.replace('$' + key, match.groups[key]);
-          });
-        }
-        res.sendFile(path.normalize(nowProjectDir + '/' + dest));
+        console.log(logMessage + ' --> ' + dest + ' (static)');
+        res.sendFile(handlerFilepath);
       }
     });
   });
