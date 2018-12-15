@@ -5,8 +5,8 @@ const SEPARATOR = '-----------------------------------';
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs');
-const pathToRegexp = require('path-to-regexp');
 const NamedRegExp = require('named-regexp-groups');
+const cors = require('cors');
 
 const argv = yargs
   .options({
@@ -46,7 +46,7 @@ if (fs.existsSync(nowConfPath)) {
     
     log.push('  http://localhost:' + argv.port + route.src + '  |  RegExp: ' + re.regex);
     
-    app.all(re.regex, (req, res) => {
+    app.all(re.regex, cors(), (req, res) => {
       const logMessage = '=> ' + req.url + ' is matching ' + route.src;
       const match = req.url.match(re);
       var dest = route.dest;
