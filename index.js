@@ -48,7 +48,8 @@ if (fs.existsSync(nowConfPath)) {
     
     app.all(re.regex, cors(), (req, res) => {
       const logMessage = '=> ' + req.url + ' is matching ' + route.src;
-      const match = req.url.match(re);
+      const onlyPath = req.url.split('?').shift();
+      const match = onlyPath.match(re);
       var dest = route.dest;
       
       for (let i=1; i<match.length; i++) {
