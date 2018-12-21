@@ -61,6 +61,10 @@ Here's is a list of the things that happen when `now-lambda` process your `now.j
 * Does not use any of the `@now/<...>` packages
 * Does not connect to now's servers
 
+## Caveats
+
+* `now-lambda` is a very light abstraction on top of Express. It is possible that some of the route matching works in a different way.
+* `now-lambda` sends Express's `request` and `response` objects. In reality when you deploy your app those objects are provided by Node's [http](https://nodejs.org/api/http.html) module. For example `req.send` will no work when you deploy to Zeit because `.send` is not a method of [http](https://nodejs.org/api/http.html).
 
 ## CLI arguments
 
