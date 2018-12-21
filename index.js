@@ -48,7 +48,9 @@ if (fs.existsSync(nowConfPath)) {
     
     app.all(re.regex, cors(), (req, res) => {
       const logMessage = '=> ' + req.url + ' is matching ' + route.src;
-      const onlyPath = req.url.split('?').shift();
+      const urlParts = req.url.split('?');
+      const onlyPath = urlParts[0];
+      const getParams = urlParts[1];
       const match = onlyPath.match(re);
       var dest = route.dest;
       
@@ -65,7 +67,7 @@ if (fs.existsSync(nowConfPath)) {
 
       if (handlerExt === '.js') {
         console.log(logMessage + ' --> ' + dest + ' (node)');
-        req.url = dest;
+        req.url = dest + (getParams ? '?' + getParams : '');
         require(handlerFilepath)(req, res);
         delete require.cache[require.resolve(handlerFilepath)];
       } else {
