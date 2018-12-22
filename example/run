@@ -1,0 +1,9 @@
+# curl -i http://localhost:8004/api/login
+# curl -i http://localhost:8004/api/demo
+# curl -i http://localhost:8004/static/assets/css/styles.css
+# curl -i http://localhost:8004/static/assets/logic.js
+# curl -i http://localhost:8004/static/sw.js
+# curl -i http://localhost:8004/e/resources/editor.js
+# curl -i http://localhost:8004/docs
+# curl -i http://localhost:8004
+curl -i http://localhost:8004/not-found

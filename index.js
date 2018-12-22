@@ -7,6 +7,7 @@ const path = require('path');
 const yargs = require('yargs');
 const NamedRegExp = require('named-regexp-groups');
 const cors = require('cors');
+const extglob = require('extglob');
 
 const argv = yargs
   .options({
@@ -40,14 +41,15 @@ if (fs.existsSync(nowConfPath)) {
   const express = require('express')
   const app = express();
   const log = [SEPARATOR, 'Routes:'];
+  const getBuilder = dest => nowConf.builds.find(build => extglob.isMatch(dest, '?(/)' + build.src));
 
   nowConf.routes.forEach(route => {
     const re = new NamedRegExp('^' + route.src);
     
-    log.push('  http://localhost:' + argv.port + route.src + '  |  RegExp: ' + re.regex);
+    log.push('  http://localhost:' + argv.port + route.src);
     
     app.all(re.regex, cors(), (req, res) => {
-      const logMessage = '=> ' + req.url + ' is matching ' + route.src;
+      var logMessage = [ '=> ' + req.url + ' === ' + route.src ];
       const urlParts = req.url.split('?');
       const onlyPath = urlParts[0];
       const getParams = urlParts[1];
@@ -63,16 +65,24 @@ if (fs.existsSync(nowConfPath)) {
         });
       }
       const handlerFilepath = path.normalize(nowProjectDir + '/' + removeQuery(dest));
-      const handlerExt = path.extname(removeQuery(route.dest)).toLowerCase();
+      const builder = getBuilder(removeQuery(dest));
 
-      if (handlerExt === '.js') {
-        console.log(logMessage + ' --> ' + dest + ' (node)');
+      logMessage.push('   ' + (builder ? builder.use + '("' + dest + '")' : 'no builder found'));
+
+      if (builder && builder.use === '@now/static') {
+        console.log(logMessage.join('\n'));
+        res.sendFile(handlerFilepath);
+      } else if (builder && builder.use === '@now/node') {
+        console.log(logMessage.join('\n'));
         req.url = dest + (getParams ? '?' + getParams : '');
         require(handlerFilepath)(req, res);
         delete require.cache[require.resolve(handlerFilepath)];
-      } else {
-        console.log(logMessage + ' --> ' + dest + ' (static)');
+      } else if (fs.existsSync(handlerFilepath)) {
+        console.log(logMessage.join('\n'));
         res.sendFile(handlerFilepath);
+      } else {
+        res.status(404);
+        res.send(handlerFilepath + ' can not be found.');
       }
     });
   });

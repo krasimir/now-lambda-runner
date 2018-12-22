@@ -18,15 +18,22 @@ Let's say that we have the following `now.json` file:
 {
   "version": 2,
   "builds": [
-    { "src": "www/*.js", "use": "@now/node" },
-    { "src": "www/index.html", "use": "@now/static" },
-    { "src": "www/static/*.*", "use": "@now/static" }
+    { "src": "static/assets/**/*.*", "use": "@now/static" },
+    { "src": "static/assets/*.*", "use": "@now/static" },
+    { "src": "static/*.*", "use": "@now/static" },
+    { "src": "api/*.js", "use": "@now/node" },
+    { "src": "*.js", "use": "@now/node" },
+    { "src": "*.html", "use": "@now/static" }
   ],
-  "alias": [ "demoit.now.sh" ],
   "routes": [
-    { "src": "/e/(.*)", "dest": "/www/editor.js?id=$1"},
-    { "src": "/static/(.*)", "dest": "/www/static/$1"},
-    { "src": "/(.*)", "dest": "/www/index.html"}
+    { "src": "/api/login", "dest": "/api/login.js" },
+    { "src": "/api/demo", "dest": "/api/demo.js" },
+    { "src": "/static/assets/(.*)", "dest": "/static/assets/$1"},
+    { "src": "/static/(.*)", "dest": "/static/$1"},
+    { "src": "/e/resources/(?<resource>[^/]*)", "dest": "/static/resources/$resource"},
+    { "src": "/e/(.*)?", "dest": "/editor.js?id=$1"},
+    { "src": "/docs", "dest": "/docs.html"},
+    { "src": "/(.*)", "dest": "/index.html"}
   ]
 }
 ```
@@ -42,23 +49,39 @@ The result is as follows:
 ```
 -----------------------------------
 Routes:
-  http://localhost:8004/e/(.*)
+  http://localhost:8004/api/login
+  http://localhost:8004/api/demo
+  http://localhost:8004/static/assets/(.*)
   http://localhost:8004/static/(.*)
+  http://localhost:8004/e/resources/(?<resource>[^/]*)
+  http://localhost:8004/e/(.*)?
+  http://localhost:8004/docs
   http://localhost:8004/(.*)
 -----------------------------------
+```
+
+And if we run the following curl request:
+
+```
+curl -i http://localhost:8004/e/foobar
+```
+
+we get `editor.js` lambda executed. The server reports:
+
+```
+=> /e/foobar === /e/(.*)?
+   @now/node("/editor.js?id=foobar")
 ```
 
 Here's is a list of the things that happen when `now-lambda` process your `now.json` file:
 
 * It spins up an [expressjs](https://expressjs.com/) server locally on your machine
-* It starts reading the `routes` field in the `now.json` file
-* If the `dest` points to a JavaScript file it passes the request and response objects to the function exported by that file. Or in other words simulates now's lambda functions.
-* If the `dest` points to a non JavaScript file it simply serves that file as a static resource.
-* If the `dest` points to something else it assumes that this is a static resource and directly serves the content of the requested resource.
+* It starts reading the `routes` field in the `now.json` file and defines route handlers for each of the routes.
+* When a route matches it reads the `builds` field to figure out if it has to server statically the file or it must run the lambda.
+* The module only understands `@now/static` and `@now/node`. If there is another builder used the file is considered a static resource and it gets served directly.
 
 `now-lambda` does not:
-* Read the `builds` field
-* Does not use any of the `@now/<...>` packages
+* Use the real now builders
 * Does not connect to now's servers
 
 ## Caveats

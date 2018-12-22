@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "static/assets/**/*.*", "use": "@now/static" },
+    { "src": "static/assets/*.*", "use": "@now/static" },
+    { "src": "static/*.*", "use": "@now/static" },
+    { "src": "api/*.js", "use": "@now/node" },
+    { "src": "*.js", "use": "@now/node" },
+    { "src": "*.html", "use": "@now/static" }
+  ],
+  "routes": [
+    { "src": "/api/login", "dest": "/api/login.js" },
+    { "src": "/api/demo", "dest": "/api/demo.js" },
+    { "src": "/static/assets/(.*)", "dest": "/static/assets/$1"},
+    { "src": "/static/(.*)", "dest": "/static/$1"},
+    { "src": "/e/resources/(?<resource>[^/]*)", "dest": "/static/resources/$resource"},
+    { "src": "/e/(.*)?", "dest": "/editor.js?id=$1"},
+    { "src": "/docs", "dest": "/docs.html"},
+    { "src": "/(.*)", "dest": "/index.html"}
+  ]
+}
