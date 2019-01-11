@@ -45,18 +45,16 @@ if (fs.existsSync(nowConfPath)) {
 
   nowConf.routes.forEach(route => {
     const re = new NamedRegExp('^' + route.src);
-    
-    log.push('  http://localhost:' + argv.port + route.src);
-    
-    app.all(re.regex, cors(), (req, res) => {
-      var logMessage = [ '=> ' + req.url + ' === ' + route.src ];
+
+    const callback = (req, res) => {
+      var logMessage = ['=> ' + req.url + ' === ' + route.src];
       const urlParts = req.url.split('?');
       const onlyPath = urlParts[0];
       const getParams = urlParts[1];
       const match = onlyPath.match(re);
       var dest = route.dest;
-      
-      for (let i=1; i<match.length; i++) {
+
+      for (let i = 1; i < match.length; i++) {
         dest = dest.replace(new RegExp('\\$' + i, 'g'), match[i]);
       }
       if (match.groups) {
@@ -84,7 +82,17 @@ if (fs.existsSync(nowConfPath)) {
         res.status(404);
         res.send(handlerFilepath + ' can not be found.');
       }
-    });
+    };
+
+    if (route.methods) {
+      for (const method of route.methods) {
+        log.push(`  ${method} - http://localhost:${argv.port}${route.src}`);
+        app[method.toLowerCase()](re.regex, cors(), callback);
+      }
+    } else {
+      log.push(` ALL - http://localhost:${argv.port}${route.src}`);
+      app.all(re.regex, cors(), callback);
+    }
   });
 
   log.push(SEPARATOR);
