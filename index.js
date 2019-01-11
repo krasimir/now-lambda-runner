@@ -47,7 +47,7 @@ if (fs.existsSync(nowConfPath)) {
     const re = new NamedRegExp('^' + route.src);
 
     const callback = (req, res) => {
-      var logMessage = ['=> ' + req.url + ' === ' + route.src];
+      var logMessage = [`=>  ${req.method} - ${req.url} === ${route.src}`];
       const urlParts = req.url.split('?');
       const onlyPath = urlParts[0];
       const getParams = urlParts[1];
