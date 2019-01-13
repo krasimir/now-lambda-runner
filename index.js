@@ -86,7 +86,7 @@ if (fs.existsSync(nowConfPath)) {
 
     if (route.methods) {
       for (const method of route.methods) {
-        log.push(`  ${method} - http://localhost:${argv.port}${route.src}`);
+        log.push(` ${method} - http://localhost:${argv.port}${route.src}`);
         app[method.toLowerCase()](re.regex, cors(), callback);
       }
     } else {
