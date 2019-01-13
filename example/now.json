@@ -9,8 +9,8 @@
     { "src": "*.html", "use": "@now/static" }
   ],
   "routes": [
-    { "src": "/api/login", "dest": "/api/login.js" },
-    { "src": "/api/demo", "dest": "/api/demo.js" },
+    { "src": "/api/login", "dest": "/api/login.js"},
+    { "src": "/api/demo", "dest": "/api/demo.js", "methods": ["GET"] },
     { "src": "/static/assets/(.*)", "dest": "/static/assets/$1"},
     { "src": "/static/(.*)", "dest": "/static/$1"},
     { "src": "/e/resources/(?<resource>[^/]*)", "dest": "/static/resources/$resource"},
