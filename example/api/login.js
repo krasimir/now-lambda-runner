@@ -1,3 +1,4 @@
 module.exports = function (req, res) {
-  res.end('login');
+  res.setHeader('Content-Type', 'application/json');
+  res.end('{"foo":"bar"}');
 }

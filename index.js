@@ -8,6 +8,7 @@ const yargs = require('yargs');
 const NamedRegExp = require('named-regexp-groups');
 const cors = require('cors');
 const extglob = require('extglob');
+const mime = require('mime-types')
 
 const argv = yargs
   .options({
@@ -38,16 +39,51 @@ const nowProjectDir = path.dirname(nowConfPath);
 
 if (fs.existsSync(nowConfPath)) {
   const nowConf = require(nowConfPath);
-  const express = require('express')
-  const app = express();
+  const handlers = [];
+  const addHandler = method => (regexp, lambda) => handlers.push({ regexp: regexp, lambda: lambda, method: method });
+  const app = {
+    all: addHandler('all'),
+    get: addHandler('get'),
+    post: addHandler('post'),
+    put: addHandler('put'),
+    delete: addHandler('delete'),
+    patch: addHandler('patch'),
+    head: addHandler('head'),
+    options: addHandler('options')
+  };
+  const http = require('http');
+  const server = http.createServer((req, res) => {
+    for (let i = 0; i < handlers.length; i++) {
+      const h = handlers[i];
+
+      if ((h.method === 'all' || h.method === req.method.toLowerCase()) && req.url.match(h.regexp)) {
+        cors()(req, res, () => h.lambda(req, res));
+        return;
+      }
+    }
+
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('The provided path does not match.\n');
+  });
   const log = [SEPARATOR, 'Routes:'];
   const getBuilder = dest => nowConf.builds.find(build => extglob.isMatch(dest, '?(/)' + build.src));
+  const sendFile = (res, filePath) => {
+    const stat = fs.statSync(filePath);
+    res.writeHead(200, {
+      'Content-Type': mime.lookup(filePath),
+      'Content-Length': stat.size
+    });
+
+    var readStream = fs.createReadStream(filePath);
+    readStream.pipe(res);
+  }
 
   nowConf.routes.forEach(route => {
     const re = new NamedRegExp('^' + route.src);
 
     const callback = (req, res) => {
-      var logMessage = [`=>  ${req.method} - ${req.url} === ${route.src}`];
+      var logMessage = [`=> ${req.method} - ${req.url} === ${route.src}`];
       const urlParts = req.url.split('?');
       const onlyPath = urlParts[0];
       const getParams = urlParts[1];
@@ -69,7 +105,7 @@ if (fs.existsSync(nowConfPath)) {
 
       if (builder && builder.use === '@now/static') {
         console.log(logMessage.join('\n'));
-        res.sendFile(handlerFilepath);
+        sendFile(res, handlerFilepath);
       } else if (builder && builder.use === '@now/node') {
         console.log(logMessage.join('\n'));
         req.url = dest + (getParams ? '?' + getParams : '');
@@ -77,7 +113,7 @@ if (fs.existsSync(nowConfPath)) {
         delete require.cache[require.resolve(handlerFilepath)];
       } else if (fs.existsSync(handlerFilepath)) {
         console.log(logMessage.join('\n'));
-        res.sendFile(handlerFilepath);
+        sendFile(res, handlerFilepath);
       } else {
         res.status(404);
         res.send(handlerFilepath + ' can not be found.');
@@ -87,18 +123,19 @@ if (fs.existsSync(nowConfPath)) {
     if (route.methods) {
       for (const method of route.methods) {
         log.push(` ${method} - http://localhost:${argv.port}${route.src}`);
-        app[method.toLowerCase()](re.regex, cors(), callback);
+        app[method.toLowerCase()](re.regex, callback);
       }
     } else {
       log.push(` ALL - http://localhost:${argv.port}${route.src}`);
-      app.all(re.regex, cors(), callback);
+      app.all(re.regex, callback);
     }
   });
 
   log.push(SEPARATOR);
 
-  app.listen(argv.port);
-  console.log(log.join('\n'));
+  server.listen(argv.port, 'localhost', () => {
+    console.log(log.join('\n'));
+  });
 } else {
   error('now.json can not be found in ' + nowConfPath);
 }
