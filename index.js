@@ -109,7 +109,12 @@ if (fs.existsSync(nowConfPath)) {
       } else if (builder && builder.use === '@now/node') {
         console.log(logMessage.join('\n'));
         req.url = dest + (getParams ? '?' + getParams : '');
-        require(handlerFilepath)(req, res);
+        
+        // works for NODE_OPTIONS='-r esm'
+        const objOrModule = require(handlerFilepath)
+        const obj = objOrModule.default ? objOrModule.default : obj
+        obj(req, res)
+        
         delete require.cache[require.resolve(handlerFilepath)];
       } else if (fs.existsSync(handlerFilepath)) {
         console.log(logMessage.join('\n'));
