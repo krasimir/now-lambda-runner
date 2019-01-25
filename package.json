@@ -1,6 +1,6 @@
 {
   "name": "now-lambda-runner",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "bin": {
     "now-lambda": "./index.js"
   },

@@ -112,7 +112,7 @@ if (fs.existsSync(nowConfPath)) {
         
         // works for NODE_OPTIONS='-r esm'
         const objOrModule = require(handlerFilepath)
-        const obj = objOrModule.default ? objOrModule.default : obj
+        const obj = objOrModule.default ? objOrModule.default : objOrModule;
         obj(req, res)
         
         delete require.cache[require.resolve(handlerFilepath)];
