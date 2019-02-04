@@ -120,8 +120,8 @@ if (fs.existsSync(nowConfPath)) {
         console.log(logMessage.join('\n'));
         sendFile(res, handlerFilepath);
       } else {
-        res.status(404);
-        res.send(handlerFilepath + ' can not be found.');
+        res.statusCode = 404;
+        res.end(handlerFilepath + ' can not be found.');
       }
     };
 
