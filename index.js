@@ -67,7 +67,17 @@ if (fs.existsSync(nowConfPath)) {
     res.end('The provided path does not match.\n');
   });
   const log = [SEPARATOR, 'Routes:'];
-  const getBuilder = dest => nowConf.builds.find(build => extglob.isMatch(dest, '?(/)' + build.src));
+  const matchBuilder = (dest, build) => {
+    if (build.src === 'package.json' && build.config && build.config.distDir) {
+      const distPath = path.normalize([build.config.distDir, dest].join('/'))
+      const exist = fs.existsSync(distPath)
+      if (exist) {
+        return exist
+      }
+    }
+    return extglob.isMatch(dest, '?(/)' + build.src)
+  }
+  const getBuilder = dest => nowConf.builds.find(build => matchBuilder(dest, build));
   const sendFile = (res, filePath) => {
     const stat = fs.statSync(filePath);
     res.writeHead(200, {
@@ -98,8 +108,13 @@ if (fs.existsSync(nowConfPath)) {
           dest = dest.replace(new RegExp('\\$' + key, 'g'), match.groups[key]);
         });
       }
-      const handlerFilepath = path.normalize(nowProjectDir + '/' + removeQuery(dest));
       const builder = getBuilder(removeQuery(dest));
+      const pathArray = [nowProjectDir]
+      if (builder && builder.config && builder.config.distDir) {
+          pathArray.push(builder.config.distDir)
+      }
+      pathArray.push(removeQuery(dest))
+      const handlerFilepath = path.normalize(pathArray.join('/'));
 
       logMessage.push('   ' + (builder ? builder.use + '("' + dest + '")' : 'no builder found'));
 
