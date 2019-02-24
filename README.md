@@ -75,19 +75,14 @@ we get `editor.js` lambda executed. The server reports:
 
 Here's is a list of the things that happen when `now-lambda` process your `now.json` file:
 
-* It spins up an [expressjs](https://expressjs.com/) server locally on your machine
+* It spins up a [node](https://nodejs.org/api/http.html) server locally on your machine
 * It starts reading the `routes` field in the `now.json` file and defines route handlers for each of the routes.
 * When a route matches it reads the `builds` field to figure out if it has to server statically the file or it must run the lambda.
-* The module only understands `@now/static` and `@now/node`. If there is another builder used the file is considered a static resource and it gets served directly.
+* The module only understands `@now/static`, `@now/node` and `@now/static-build` (partly). If there is another builder used the file is considered a static resource and it gets served directly.
 
 `now-lambda` does not:
 * Use the real now builders
 * Does not connect to now's servers
-
-## Caveats
-
-* `now-lambda` is a very light abstraction on top of Express. It is possible that some of the route matching works in a different way.
-* `now-lambda` sends Express's `request` and `response` objects. In reality when you deploy your app those objects are provided by Node's [http](https://nodejs.org/api/http.html) module. For example `req.send` will not work when you deploy to Zeit because `.send` is not a method of [http](https://nodejs.org/api/http.html).
 
 ## CLI arguments
 
