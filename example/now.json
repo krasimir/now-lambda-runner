@@ -6,7 +6,8 @@
     { "src": "static/*.*", "use": "@now/static" },
     { "src": "api/*.js", "use": "@now/node" },
     { "src": "*.js", "use": "@now/node" },
-    { "src": "*.html", "use": "@now/static" }
+    { "src": "*.html", "use": "@now/static" },
+    { "src": "package.json", "use": "@now/static-build", "config": { "distDir": "build" } }
   ],
   "routes": [
     { "src": "/api/login", "dest": "/api/login.js"},
@@ -16,6 +17,7 @@
     { "src": "/e/resources/(?<resource>[^/]*)", "dest": "/static/resources/$resource"},
     { "src": "/e/(.*)?", "dest": "/editor.js?id=$1"},
     { "src": "/docs", "dest": "/docs.html"},
+    { "src": "/webapp/(.*)", "dest": "/build/$1"},
     { "src": "/(.*)", "dest": "/index.html"}
   ]
 }
