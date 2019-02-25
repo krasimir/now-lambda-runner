@@ -88,3 +88,4 @@ Here's is a list of the things that happen when `now-lambda` process your `now.j
 
 * `--config` - path to `now.json` file
 * `--port` - by default the local server listens on port 8004. You can change it via this argument.
+* `--proxy` - a URL to use as a fallback proxy for requests that would otherwise fail (e.g. `http://localhost:3000`)
