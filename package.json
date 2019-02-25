@@ -1,6 +1,6 @@
 {
   "name": "now-lambda-runner",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "bin": {
     "now-lambda": "./index.js"
   },
@@ -28,6 +28,7 @@
     "extglob": "3.0.0",
     "mime-types": "2.1.21",
     "named-regexp-groups": "^1.0.3",
+    "request": "^2.88.0",
     "yargs": "12.0.5"
   }
 }

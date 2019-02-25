@@ -8,7 +8,8 @@ const yargs = require('yargs');
 const NamedRegExp = require('named-regexp-groups');
 const cors = require('cors');
 const extglob = require('extglob');
-const mime = require('mime-types')
+const mime = require('mime-types');
+const request = require('request');
 
 const argv = yargs
   .options({
@@ -21,7 +22,12 @@ const argv = yargs
       type: 'number',
       default: 8004,
       desc: 'The port where the runner is listening for your requests'
-    }
+    },
+    proxy: {
+      type: 'string',
+      default: null,
+      desc: 'A URL to use as a fallback proxy for requests that would otherwise fail (e.g. "http://localhost:3000")'
+    },
   })
   .help()
   .argv;
@@ -131,6 +137,10 @@ if (fs.existsSync(nowConfPath)) {
         obj(req, res)
         
         delete require.cache[require.resolve(handlerFilepath)];
+      } else if (argv.proxy) {
+        const proxy = request(`${argv.proxy}${req.url}`)
+        req.pipe(proxy)
+        proxy.pipe(res)
       } else if (fs.existsSync(handlerFilepath)) {
         console.log(logMessage.join('\n'));
         sendFile(res, handlerFilepath);
