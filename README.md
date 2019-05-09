@@ -1,4 +1,10 @@
-# now-lambda-runner
+# !!! Deprecated
+
+Use `now dev` instead.
+
+Here is a introductory [blog post](https://zeit.co/blog/now-dev). [Now docs](https://zeit.co/now).
+
+## now-lambda-runner
 
 A tool for locally testing [now](https://zeit.co/now) lambdas.
 
